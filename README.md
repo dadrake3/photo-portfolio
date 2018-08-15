@@ -25,3 +25,8 @@ Run `ng e2e` to execute the end-to-end tests via [Protractor](http://www.protrac
 ## Further help
 
 To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI README](https://github.com/angular/angular-cli/blob/master/README.md).
+
+##
+description
+
+used aws codebuild and a yaml file in source to build the project from a source github repo on the cloud. Using aws codepipeline i automatically deploy the build to s3 static hosting on git pushes. Route 53 routes the domain to cloudfront which handles the url routing on top of s3 hosting. s3 storage is also used to store the images on this site. a python script with boto3 automatically uploads the images to s3 from the local disk.

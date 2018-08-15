@@ -2,7 +2,7 @@ version: 0.2
 
 env:
     variables:
-        S3_BUCKET: "<photo-portfolio-appgot"
+        S3_BUCKET: "<photo-portfolio-app"
         APP_NAME: "BrutalGal"
         BUILD_ENV : "prod"
 
