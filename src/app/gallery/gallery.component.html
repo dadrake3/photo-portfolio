@@ -1,0 +1,36 @@
+
+<div id="accent" #accent>
+  THIS ONES CALLED: {{gallery}}!
+</div>
+
+<div id="accentMobile">
+  THIS ONES CALLED: {{gallery}}
+</div>
+
+<div class="goBack" (click)="goBack()">
+  go back
+</div>
+
+<div class="gal" >
+  <div class="" *ngFor="let image of images$">
+   <span class="box">
+      <!--<img src={{image.url}}>-->
+     <img [lazyLoad]="image.url">
+      <span>
+        <p class="title">{{image.title}}</p>
+        <p class="imageInfo">{{image.info}}</p>
+      </span>
+   </span>
+  </div>
+</div>
+
+<span class="controls">
+  <div class="prev" (click)="getPrev()" (window:keyup.arrowleft)="getPrev()">
+    prev
+  </div>
+  <div class="next" (click)="getNext()" (window:keyup.arrowright)="getNext()">
+    next
+  </div>
+</span>
+
+
