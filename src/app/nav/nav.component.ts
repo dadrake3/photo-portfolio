@@ -66,7 +66,7 @@ export class NavComponent implements OnInit {
 
           this.prev = elementMouseIsOver.innerHTML;
           this.description = false;
-        } catch (e) {console.log(e); }
+        } catch (e) { /*console.log(e);*/ }
       }
     } else if (elementMouseIsOver.innerHTML !== this.prev) {
       target.style.backgroundImage = '';
