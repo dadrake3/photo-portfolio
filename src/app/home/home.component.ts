@@ -18,10 +18,16 @@ export class HomeComponent implements AfterViewInit {
   ngAfterViewInit() {
     console.log();
     const _ = this;
-    this.imageProviderService.getTheme('home', function (theme) {
-      document.body.style.backgroundColor = theme.background;
-      document.body.style.color = theme.text;
-      _.accent.nativeElement.style.backgroundColor = theme.accent;
+
+    this.imageProviderService.credPromise.then(function(data) {
+      console.log('sucess');
+      _.imageProviderService.getTheme('home', function (theme) {
+        document.body.style.backgroundColor = theme.background;
+        document.body.style.color = theme.text;
+        _.accent.nativeElement.style.backgroundColor = theme.accent;
+      });
+    }).catch(function(err) {
+      console.log(err);
     });
   }
 }

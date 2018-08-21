@@ -36,14 +36,16 @@ export class NavComponent implements OnInit {
 
 
   ngOnInit() {
-    const _ = this;
-    this.imageProviderService.getGalleries(function () {
-      _.tagCloudComponent.reDraw();
-    })
-    .subscribe(
-      galleries => {this.galleries = galleries; },
-      err => console.log(err),
-      () => {
+    const _this = this;
+    this.imageProviderService.credPromise.then(function () {
+      _this.imageProviderService.getGalleries(function () {
+        _this.tagCloudComponent.reDraw();
+      })
+        .subscribe(
+          galleries => {_this.galleries = galleries; },
+          err => console.log(err),
+          () => {
+          });
     });
   }
 

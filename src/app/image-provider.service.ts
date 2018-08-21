@@ -1,7 +1,8 @@
 
 import {Injectable} from '@angular/core';
 import { Observable, of } from 'rxjs';
-import * as S3 from 'aws-sdk/clients/s3';
+import * as AWS from 'aws-sdk';
+
 
 
 export interface Image {
@@ -26,28 +27,35 @@ export class ImageProviderService {
 
 
   BUCKET = 'photo-portfollio';
-  accessKeyId = 'AKIAJVOAXFXOQLKYKAIA';
-  secretAccessKey = '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';
   url = 'https://s3.us-east-2.amazonaws.com/photo-portfollio/';
   S3Client;
   public previewImages = {all: []};
   galleries = [];
   themes;
+  credPromise;
 
   constructor() {
-    this.S3Client = new S3(
-      {
-        accessKeyId: this.accessKeyId,
-        secretAccessKey: this.secretAccessKey,
-        region: 'us-east-2'
-      }
-    );
+    AWS.config.region = 'us-east-1';
+    AWS.config.credentials = new AWS.CognitoIdentityCredentials({
+      IdentityPoolId: 'us-east-1:ca237576-1df4-40e3-a767-71100fb37af3'
+    });
+
+    const _this = this;
+
+    const credPromise = (AWS.config.credentials as AWS.Credentials).getPromise();
+    this.credPromise = credPromise;
+    credPromise.then(function(data) {
+      console.log('sucess');
+      _this.S3Client = new AWS.S3;
+    }).catch(function(err) {
+      console.log(err);
+    });
+
   }
   //
   //
   //
   public getImages(gallery, callback): Observable<Image[]> {
-
     const listObjParams = {
       Bucket: this.BUCKET,
       Prefix: gallery
@@ -90,6 +98,7 @@ export class ImageProviderService {
   //
   //
   public getGalleries(callback): Observable<any[]> {
+
     const listObjParams = {
       Bucket: this.BUCKET,
       Delimiter: '/',
@@ -137,6 +146,7 @@ export class ImageProviderService {
   //
   //
   public getBkgrdImg(key) {
+
     if (this.previewImages.hasOwnProperty(key)) {
       return this.previewImages[key][Math.floor(this.randRange(0, 16))].url;
     } else { return ''; }
@@ -167,6 +177,7 @@ export class ImageProviderService {
   //
   //
   public getTheme(key, callback) {
+
 
     const params = {
       Bucket: this.BUCKET,
