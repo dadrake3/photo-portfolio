@@ -26,8 +26,8 @@ export interface Theme {
 export class ImageProviderService {
 
 
-  BUCKET = 'photo-portfollio';
-  url = 'https://s3.us-east-2.amazonaws.com/photo-portfollio/';
+  BUCKET = 'photo-portfolio-1';
+  url = 'https://s3.us-east-1.amazonaws.com/photo-portfolio-1/';
   S3Client;
   public previewImages = {all: []};
   galleries = [];
@@ -45,7 +45,7 @@ export class ImageProviderService {
     const credPromise = (AWS.config.credentials as AWS.Credentials).getPromise();
     this.credPromise = credPromise;
     credPromise.then(function(data) {
-      console.log('sucess');
+      console.log('success');
       _this.S3Client = new AWS.S3;
     }).catch(function(err) {
       console.log(err);

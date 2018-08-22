@@ -9,6 +9,8 @@ import { HomeComponent } from './home/home.component';
 import { GalleryComponent } from './gallery/gallery.component';
 import { NavComponent } from './nav/nav.component';
 import { LazyLoadImageModule } from 'ng-lazyload-image';
+import { DragAndDropModule } from 'angular-draggable-droppable';
+
 
 
 @NgModule({
@@ -23,7 +25,8 @@ import { LazyLoadImageModule } from 'ng-lazyload-image';
     TagCloudModule,
     AppRoutingModule,
     AppRoutingModule,
-    LazyLoadImageModule
+    LazyLoadImageModule,
+    DragAndDropModule
   ],
   providers: [],
   bootstrap: [AppComponent],

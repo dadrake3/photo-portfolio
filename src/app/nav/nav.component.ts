@@ -3,6 +3,7 @@ import {ImageProviderService} from '../image-provider.service';
 import {Router} from '@angular/router';
 import {TagCloudComponent, CloudOptions, ZoomOnHoverOptions} from 'angular-tag-cloud-module';
 
+
 @Component({
   selector: 'app-nav',
   templateUrl: './nav.component.html',
@@ -28,6 +29,11 @@ export class NavComponent implements OnInit {
     el;
     prev = '';
 
+
+  public dragEnd(event) {
+    console.log('Element was dragged', event);
+  }
+
   constructor(el: ElementRef,
               private router: Router,
               public imageProviderService: ImageProviderService ) {
@@ -39,7 +45,7 @@ export class NavComponent implements OnInit {
     const _this = this;
     this.imageProviderService.credPromise.then(function () {
       _this.imageProviderService.getGalleries(function () {
-        _this.tagCloudComponent.reDraw();
+        // _this.tagCloudComponent.reDraw();
       })
         .subscribe(
           galleries => {_this.galleries = galleries; },
@@ -83,3 +89,5 @@ export class NavComponent implements OnInit {
     }
   }
 }
+
+
