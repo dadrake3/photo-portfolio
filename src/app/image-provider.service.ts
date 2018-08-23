@@ -26,26 +26,27 @@ export interface Theme {
 })
 
 export class ImageProviderService {
-
-
   BUCKET = 'photo-portfolio-1';
   url = 'https://s3.us-east-1.amazonaws.com/photo-portfolio-1/';
   S3Client;
   galleries = [];
-  themes;
   AWSCredObservable;
+  /**
+   * @name constructor
+   */
   constructor() {
     this.initAWS();
-    this.getGalleriesObs().subscribe(result => this.galleries = result);
+    this.getGalleries().subscribe(result => this.galleries = result);
   }
-
-
+  /**
+   * @name initAWS
+   * @desc gets credentials for aws, initializes s3 client
+   */
   public initAWS() {
     AWS.config.region = 'us-east-1';
     AWS.config.credentials = new AWS.CognitoIdentityCredentials({
       IdentityPoolId: 'us-east-1:ca237576-1df4-40e3-a767-71100fb37af3'
     });
-
     const credPromise = (AWS.config.credentials as AWS.Credentials).getPromise();
     // this observable gets the credentials and then initializes the correct resources
     this.AWSCredObservable = fromPromise(credPromise).pipe(
@@ -55,7 +56,12 @@ export class ImageProviderService {
       })
     );
   }
-  public getGalleriesObs(): Observable<any[]> {
+  /**
+   * @name getGalleries
+   * @desc gets the list of galleries
+   * @returns {Observable<any[]>}
+   */
+  public getGalleries(): Observable<any[]> {
     const listObjParams = {
       Bucket: this.BUCKET,
       Delimiter: '/',
@@ -69,17 +75,30 @@ export class ImageProviderService {
       toArray(),
     );
   }
-  public getThemeObs(): Observable<any> {
-      const params = {
-        Bucket: this.BUCKET,
-        Key: 'themes.json'
-      };
+  /**
+   * @name getTheme
+   * @param {string} gallery
+   * @desc gets the theme for the page
+   * @returns {Observable<any[]>}
+   */
+  public getTheme(gallery): Observable<any> {
+    const params = {
+      Bucket: this.BUCKET,
+      Key: 'themes.json'
+    };
     return this.AWSCredObservable.pipe(
       flatMap( () => fromPromise(this.S3Client.getObject(params).promise())),
       flatMap( result => of(JSON.parse(result['Body'].toString())) ),
+      map( result => result[gallery])
     );
   }
-  public getImagesObs(gallery) {
+  /**
+   * @name getImages
+   * @param {string} gallery
+   * @desc gets the images for the gallery
+   * @returns {Observable<any[]>}
+   */
+  public getImages(gallery): Observable<any[]> {
     const listObjParams = {
       Bucket: this.BUCKET,
       Prefix: gallery
@@ -93,12 +112,18 @@ export class ImageProviderService {
         return of(result);
       }),
       flatMap(result => {
-        return this.getTagsObs(result);
+        return this.getTags(result);
       }),
       toArray()
     );
   }
-  public getTagsObs(obj) {
+  /**
+   * @name getTags
+   * @param {string} obj
+   * @desc gets the tags for the object
+   * @returns {Observable<any[]>}
+   */
+  public getTags(obj): Observable<any[]> {
     const objTagParams = {
       Bucket: this.BUCKET,
       Key: obj['Key']
@@ -114,6 +139,12 @@ export class ImageProviderService {
     );
 
   }
+  /**
+   * @name getNext
+   * @param {string} curr
+   * @desc gets the next gallery
+   * @returns {string}
+   */
   public getNext(curr) {
     let next = this.galleries.indexOf(curr);
     next++;
@@ -122,7 +153,12 @@ export class ImageProviderService {
     }
     return this.galleries[next];
   }
-
+  /**
+   * @name getPrev
+   * @param {string} curr
+   * @desc gets the previous gallery
+   * @returns {string}
+   */
   public getPrev(curr) {
     let prev = this.galleries.indexOf(curr);
     prev--;

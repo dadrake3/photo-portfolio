@@ -17,7 +17,7 @@ export class NavComponent implements OnInit {
     this.el = el;
   }
   ngOnInit() {
-    this.imageProviderService.getGalleriesObs().subscribe(result => {
+    this.imageProviderService.getGalleries().subscribe(result => {
       this.galleries = this.galleries.concat(result);
     });
   }

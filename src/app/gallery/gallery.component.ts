@@ -21,34 +21,47 @@ export class GalleryComponent implements AfterViewInit {
     route.params.pipe(
       flatMap( () => {
         this.gallery = this.route.snapshot.paramMap.get('gallery');
-        console.log(this.gallery);
-        return this.imageProviderService.getImagesObs(this.gallery);
+        return this.imageProviderService.getImages(this.gallery);
       })
     ).subscribe(images => this.images$ = images);
   }
-
+  ngAfterViewInit() {
+    // this will reload the theme every time the route param changes
+    this.route.params.pipe(
+      flatMap(() => this.imageProviderService.getTheme(this.gallery)),
+    ).subscribe(theme => {
+      console.log(theme);
+      if (typeof theme === 'undefined') {
+        this.router.navigateByUrl('/');
+      }
+      document.body.style.backgroundColor = theme.background;
+      document.body.style.color = theme.text;
+      this.accent.nativeElement.style.backgroundColor = theme.accent;
+    });
+  }
+  /**
+   * @name getNext
+   * @desc navigates to the next gallery
+   */
   public getNext() {
     const next = this.imageProviderService.getNext(this.gallery);
     this.images$ = [];
     this.router.navigateByUrl('/gallery/' + next);
   }
+  /**
+   * @name getPrev
+   * @desc navigates to the previous gallery
+   */
   public getPrev() {
     const prev = this.imageProviderService.getPrev(this.gallery);
     this.images$ = [];
     this.router.navigateByUrl('/gallery/' + prev);
   }
+  /**
+   * @name goBack
+   * @desc navigates to the home page
+   */
   public goBack() {
     this.router.navigateByUrl('');
-  }
-  ngAfterViewInit() {
-    // this will reload the theme every time the route param changes
-    this.route.params.pipe(
-      flatMap(() => this.imageProviderService.getThemeObs()),
-      map( result => result[this.gallery])
-    ).subscribe(theme => {
-        document.body.style.backgroundColor = theme.background;
-        document.body.style.color = theme.text;
-        this.accent.nativeElement.style.backgroundColor = theme.accent;
-    });
   }
 }

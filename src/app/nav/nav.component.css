@@ -20,6 +20,11 @@ a{
   color: black !important;
 }
 
+#navMobile{
+  left: 12px;
+  position: relative;
+}
+
 #previewImage{
   position: absolute;
   width: 800px;
