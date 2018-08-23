@@ -1,7 +1,9 @@
 
 import {Injectable} from '@angular/core';
-import { Observable, of } from 'rxjs';
+import {Observable, of} from 'rxjs';
+import { filter, flatMap, map, toArray } from 'rxjs/operators';
 import * as AWS from 'aws-sdk';
+import {fromPromise} from 'rxjs/internal-compatibility';
 
 
 
@@ -29,131 +31,89 @@ export class ImageProviderService {
   BUCKET = 'photo-portfolio-1';
   url = 'https://s3.us-east-1.amazonaws.com/photo-portfolio-1/';
   S3Client;
-  public previewImages = {all: []};
   galleries = [];
   themes;
-  credPromise;
-
+  AWSCredObservable;
   constructor() {
+    this.initAWS();
+    this.getGalleriesObs().subscribe(result => this.galleries = result);
+  }
+
+
+  public initAWS() {
     AWS.config.region = 'us-east-1';
     AWS.config.credentials = new AWS.CognitoIdentityCredentials({
       IdentityPoolId: 'us-east-1:ca237576-1df4-40e3-a767-71100fb37af3'
     });
 
-    const _this = this;
-
     const credPromise = (AWS.config.credentials as AWS.Credentials).getPromise();
-    this.credPromise = credPromise;
-    credPromise.then(function(data) {
-      console.log('success');
-      _this.S3Client = new AWS.S3;
-    }).catch(function(err) {
-      console.log(err);
-    });
-
+    // this observable gets the credentials and then initializes the correct resources
+    this.AWSCredObservable = fromPromise(credPromise).pipe(
+      flatMap(() => {
+        this.S3Client = new AWS.S3;
+        return of({status: 'success'});
+      })
+    );
   }
-  //
-  //
-  //
-  public getImages(gallery, callback): Observable<Image[]> {
-    const listObjParams = {
-      Bucket: this.BUCKET,
-      Prefix: gallery
-    };
-
-
-    const images = [];
-
-
-    const url = this.url;
-    const s3 = this.S3Client;
-    const bucket = this.BUCKET;
-    this.S3Client.listObjectsV2(listObjParams, function (err, objList) {
-      if (err) {
-        console.log('There was an error getting your files: ' + err);
-        return;
-      }
-      const list = objList.Contents;
-      for (let i = 0; i < list.length; i++) {
-        if (list[i].Key.includes('.jpg')) {
-          const objTagParams = { Bucket: bucket, Key: list[i].Key };
-          s3.getObjectTagging(objTagParams, function(err1, tagset) {
-            const fullUrl = (url + list[i].Key).replace(new RegExp(' ', 'g'), '+');
-            const currImage = {url: fullUrl};
-            if (tagset.TagSet.length > 0) {
-              currImage[tagset.TagSet[0].Key] = tagset.TagSet[0].Value;
-              currImage[tagset.TagSet[1].Key] = tagset.TagSet[1].Value;
-              currImage[tagset.TagSet[2].Key] = tagset.TagSet[2].Value;
-            }
-            images.push(currImage);
-          });
-        }
-      }
-      callback(list.length);
-    });
-
-    return of(images);
-  }
-  //
-  //
-  //
-  public getGalleries(callback): Observable<any[]> {
-
+  public getGalleriesObs(): Observable<any[]> {
     const listObjParams = {
       Bucket: this.BUCKET,
       Delimiter: '/',
       // Prefix: 'test/'
     };
-
-    const galleries = [
-      { text: 'DARYL DRAKE', weight: 7, rotate: this.randRange(-30, 30), color: '#000000' },
-      // { text: 'all', weight: 7, rotate: this.randRange(-30, 30), color: '#000000' },
-      { text: 'dadrake3@gmail.com',
-        weight: 4,
-        rotate: this.randRange(-30, 30),
-        color: '#000000',
-        link: 'mailto:dadrake3@gmail.com',
-      }
-    ];
-    const _this = this;
-
-    this.S3Client.listObjectsV2(listObjParams, function (err, objList) {
-      if (err) {
-        console.log('There was an error getting your files: ' + err);
-        return;
-      }
-      const list = objList.CommonPrefixes;
-      for (let i = 0; i < list.length; i++) {
-        const gallery = list[i].Prefix.replace('/', '');
-        const temp = {text: gallery, weight: _this.randRange(2, 7), rotate: _this.randRange(-30, 30), color: '#000000'};
-        galleries.push(temp);
-        _this.galleries.push(gallery);
-        _this.getImages(gallery, function () {})
-          .subscribe(images => {_this.previewImages[gallery] = images; });
-      }
-      callback();
-    });
-    return of(galleries);
+    return this.AWSCredObservable.pipe(
+      flatMap(() => fromPromise(this.S3Client.listObjectsV2(listObjParams).promise())),
+      flatMap(result => result['CommonPrefixes'])       ,
+      map(result => result['Prefix']),
+      map(result => result.toString().slice(0, -1)),
+      toArray(),
+    );
   }
-  //
-  //
-  //
-  private randRange(min, max) {
-
-    return Math.random() * (max - min) + min;
+  public getThemeObs(): Observable<any> {
+      const params = {
+        Bucket: this.BUCKET,
+        Key: 'themes.json'
+      };
+    return this.AWSCredObservable.pipe(
+      flatMap( () => fromPromise(this.S3Client.getObject(params).promise())),
+      flatMap( result => of(JSON.parse(result['Body'].toString())) ),
+    );
   }
-  //
-  //
-  //
-  public getBkgrdImg(key) {
-
-    if (this.previewImages.hasOwnProperty(key)) {
-      return this.previewImages[key][Math.floor(this.randRange(0, 16))].url;
-    } else { return ''; }
+  public getImagesObs(gallery) {
+    const listObjParams = {
+      Bucket: this.BUCKET,
+      Prefix: gallery
+    };
+    return this.AWSCredObservable.pipe(
+      flatMap(() => fromPromise(this.S3Client.listObjectsV2(listObjParams).promise())),
+      flatMap(result => result['Contents']),
+      filter(result => result['Key'].includes('.jpg')),
+      flatMap(result => {
+        result['url'] = this.url + result['Key'];
+        return of(result);
+      }),
+      flatMap(result => {
+        return this.getTagsObs(result);
+      }),
+      toArray()
+    );
   }
-  //
-  //
-  //
+  public getTagsObs(obj) {
+    const objTagParams = {
+      Bucket: this.BUCKET,
+      Key: obj['Key']
+    };
+
+    return fromPromise(this.S3Client.getObjectTagging(objTagParams).promise()).pipe(
+      flatMap(result => result['TagSet']),
+      map(result => {
+        obj[result['Key']] = result['Value'];
+      }),
+      toArray(),
+      flatMap( () => of(obj))
+    );
+
+  }
   public getNext(curr) {
     let next = this.galleries.indexOf(curr);
     next++;
@@ -162,9 +122,7 @@ export class ImageProviderService {
     }
     return this.galleries[next];
   }
-  //
-  //
-  //
+
   public getPrev(curr) {
     let prev = this.galleries.indexOf(curr);
     prev--;
@@ -172,27 +130,6 @@ export class ImageProviderService {
       prev = this.galleries.length - 1;
     }
     return this.galleries[prev];
-  }
-  //
-  //
-  //
-  public getTheme(key, callback) {
-
-
-    const params = {
-      Bucket: this.BUCKET,
-      Key: 'themes.json'
-    };
-    let theme;
-    this.S3Client.getObject(params, function(err, data) {
-      const themes = JSON.parse(data.Body.toString());
-      if (themes.hasOwnProperty(key)) {
-        theme = themes[key];
-      } else {
-        theme = themes.default;
-      }
-      callback(theme);
-    });
   }
 }
 

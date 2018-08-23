@@ -1,33 +1,6 @@
-<div id="previewImage">
-  <p *ngIf="description">
-    IT WORKED!
-  </p>
-</div>
-
-<!--<angular-tag-cloud-->
-  <!--id="navCloud"-->
-  <!--(mousemove)="onHover($event)"-->
-  <!--(clicked)="onClick($event)"-->
-  <!--[data]="galleries"-->
-  <!--[zoomOnHover]="zoomOnHoverOptions"-->
-  <!--[width]="options.width"-->
-  <!--[height]="options.height"-->
-  <!--[overflow]="options.overflow"-->
-<!--&gt;-->
-<!--</angular-tag-cloud>-->
-
 <div  id="navMobile" class="animated jello">
-  <div *ngFor="let gallery of galleries" (click)="onClick(gallery)" class="navItem ">{{gallery.text}} </div>
+  <div *ngFor="let gallery of galleries" (click)="onClick(gallery)" class="navItem ">{{gallery}} </div>
 </div>
-
-<!-- HIDDEN IMAGE PRE LOADER -->
-<div *ngFor="let gallery of galleries">
-  <div *ngFor="let image of imageProviderService.previewImages[gallery.text]">
-    <img src={{image.url}} style="display:none;" />
-  </div>
-</div>
-
-
 
 
 

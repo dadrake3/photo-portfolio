@@ -19,16 +19,16 @@ export class HomeComponent implements AfterViewInit {
     console.log();
     const _ = this;
 
-    this.imageProviderService.credPromise.then(function(data) {
-      console.log('sucess');
-      _.imageProviderService.getTheme('home', function (theme) {
-        document.body.style.backgroundColor = theme.background;
-        document.body.style.color = theme.text;
-        _.accent.nativeElement.style.backgroundColor = theme.accent;
-      });
-    }).catch(function(err) {
-      console.log(err);
-    });
+    // this.imageProviderService.credPromise.then(function(data) {
+    //   // console.log('sucess');
+    //   _.imageProviderService.getTheme('home', function (theme) {
+    //     document.body.style.backgroundColor = theme.background;
+    //     document.body.style.color = theme.text;
+    //     _.accent.nativeElement.style.backgroundColor = theme.accent;
+    //   });
+    // }).catch(function(err) {
+    //   console.log(err);
+    // });
   }
 }
 
