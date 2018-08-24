@@ -28,6 +28,8 @@ export interface Theme {
 export class ImageProviderService {
   BUCKET = 'photo-portfolio-1';
   url = 'https://s3.us-east-1.amazonaws.com/photo-portfolio-1/';
+  IdentityPoolId = 'us-east-1:ca237576-1df4-40e3-a767-71100fb37af3';
+  region = 'us-east-1';
   S3Client;
   galleries = [];
   AWSCredObservable;
@@ -43,9 +45,9 @@ export class ImageProviderService {
    * @desc gets credentials for aws, initializes s3 client
    */
   public initAWS() {
-    AWS.config.region = 'us-east-1';
+    AWS.config.region = this.region;
     AWS.config.credentials = new AWS.CognitoIdentityCredentials({
-      IdentityPoolId: 'us-east-1:ca237576-1df4-40e3-a767-71100fb37af3'
+      IdentityPoolId: this.IdentityPoolId
     });
     const credPromise = (AWS.config.credentials as AWS.Credentials).getPromise();
     // this observable gets the credentials and then initializes the correct resources
@@ -69,7 +71,7 @@ export class ImageProviderService {
     };
     return this.AWSCredObservable.pipe(
       flatMap(() => fromPromise(this.S3Client.listObjectsV2(listObjParams).promise())),
-      flatMap(result => result['CommonPrefixes'])       ,
+      flatMap(result => result['CommonPrefixes']),
       map(result => result['Prefix']),
       map(result => result.toString().slice(0, -1)),
       toArray(),
